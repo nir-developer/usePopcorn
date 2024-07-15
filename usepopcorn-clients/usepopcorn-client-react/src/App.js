@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Children, useState } from "react";
 
 const tempMovieData = [
   {
@@ -51,27 +51,37 @@ const tempWatchedData = [
 const average = (arr) =>
   arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
 
+//STRUCTURAL
 export default function App() {
   const [movies, setMovies] = useState(tempMovieData);
-
+  const [watched, setWatched] = useState(tempWatchedData);
+  //1) INJECT THE 3 CHILDREN OF NavBar
+  //2) Inject
   return (
     <>
-      <NavBar movies={movies} />
-      <Main movies={movies} />
+      <NavBar movies={movies}>
+        <Logo />
+        <Search />
+        <NumResults movies={movies} />
+      </NavBar>
+      <Main>
+        <Box>
+          <MoviesList movies={movies} />
+        </Box>
+        <Box>
+          <WatchedSummary watched={watched} />
+          <WatchedMoviesList watched={watched} />
+        </Box>
+      </Main>
     </>
   );
 }
-
-function NavBar({ movies }) {
-  return (
-    <nav className="nav-bar">
-      <Logo />
-      <Search />
-      <NumResults movies={movies} />
-    </nav>
-  );
+//STRUCTURAL(COMPOSITION - INJECT THE 3 children of the NumResults injected )
+function NavBar({ children }) {
+  return <nav className="nav-bar">{children}</nav>;
 }
 
+//PRESENTATIONAL
 function Logo() {
   return (
     <div className="logo">
@@ -81,6 +91,7 @@ function Logo() {
   );
 }
 
+//STATEFULL
 function Search() {
   const [query, setQuery] = useState("");
 
@@ -95,6 +106,7 @@ function Search() {
   );
 }
 
+//PRESENTATIONAL
 function NumResults({ movies }) {
   return (
     <p className="num-results">
@@ -103,9 +115,10 @@ function NumResults({ movies }) {
   );
 }
 
-function Main({ movies }) {
+//STRUCTURAL
+function Main({ children }) {
   //const [movies, setMovies] = useState(tempMovieData);
-  const [watched, setWatched] = useState(tempWatchedData);
+  // const [watched, setWatched] = useState(tempWatchedData);
   // const [isOpen1, setIsOpen1] = useState(true);
   // const [isOpen2, setIsOpen2] = useState(true);
 
@@ -116,32 +129,82 @@ function Main({ movies }) {
 
   return (
     <>
-      <main className="main">
-        <ListBox movies={movies} />
-        <WatchedBox watched={watched} />
-      </main>
+      <main className="main">{children}</main>
     </>
   );
 }
+//////////////
+//LIST BOX(LEFT)
+///////////////
+//STATEFULL
+function Box({ children }) {
+  // const [watched, setWatched] = useState(tempWatchedData);
+  // const [isOpen1, setIsOpen1] = useState(true);
 
-function ListBox({ movies }) {
-  const [watched, setWatched] = useState(tempWatchedData);
-  const [isOpen1, setIsOpen1] = useState(true);
-
+  const [isOpen, setIsOpen] = useState(true);
   return (
     <div className="box">
-      <button
-        className="btn-toggle"
-        onClick={() => setIsOpen1((open) => !open)}
-      >
-        {isOpen1 ? "–" : "+"}
+      <button className="btn-toggle" onClick={() => setIsOpen((open) => !open)}>
+        {isOpen ? "–" : "+"}
       </button>
-      {isOpen1 && <MoviesList movies={movies} />}
+      {isOpen && children}
     </div>
   );
 }
 
+// function WatchedBox() {
+//   const [watched, setWatched] = useState(tempWatchedData);
+//   // const [isOpen1, setIsOpen1] = useState(true);
+//   const [isOpen2, setIsOpen2] = useState(true);
+
+//   return (
+//     <div className="box">
+//       <button
+//         className="btn-toggle"
+//         onClick={() => setIsOpen2((open) => !open)}
+//       >
+//         {isOpen2 ? "–" : "+"}
+//       </button>
+//       {isOpen2 && (
+//         <>
+//           <WatchedMoviesList watched={watched} />
+//           <WatchedSummary watched={watched} />
+//         </>
+//       )}
+//     </div>
+//   );
+// }
+
+//Reusable COMPONENT - REPLACED THE PREVIOUS 2 BOXES
+// function Box() {
+//   const [watched, setWatched] = useState(tempWatchedData);
+//   // const [isOpen1, setIsOpen1] = useState(true);
+//   const [isOpen2, setIsOpen2] = useState(true);
+
+//   return (
+//     <div className="box">
+//       <button
+//         className="btn-toggle"
+//         onClick={() => setIsOpen2((open) => !open)}
+//       >
+//         {isOpen2 ? "–" : "+"}
+//       </button>
+//       {isOpen2 && (
+//         <>
+//           <WatchedMoviesList watched={watched} />
+//           <WatchedSummary watched={watched} />
+//         </>
+//       )}
+//     </div>
+//   );
+// }
+
+//STATEFULL
 function MoviesList({ movies }) {
+  // const [movies, setMovies] = useState(tempMovieData);
+  // console.log("inside MovieList - the movies");
+  // console.log(movies);
+
   return (
     <ul className="list">
       {movies?.map((movie) => (
@@ -151,6 +214,7 @@ function MoviesList({ movies }) {
   );
 }
 
+//PRESENTATIONAL
 function Movie({ movie }) {
   return (
     <li key={movie.imdbID}>
@@ -166,29 +230,12 @@ function Movie({ movie }) {
   );
 }
 
-function WatchedBox({ watched }) {
-  // const [watched, setWatched] = useState(tempWatchedData);
-  // const [isOpen1, setIsOpen1] = useState(true);
-  const [isOpen2, setIsOpen2] = useState(true);
+///////////////
+//WATCHED BOX
+///////////
+//STATEFULL
 
-  return (
-    <div className="box">
-      <button
-        className="btn-toggle"
-        onClick={() => setIsOpen2((open) => !open)}
-      >
-        {isOpen2 ? "–" : "+"}
-      </button>
-      {isOpen2 && (
-        <>
-          <WatchedMoviesList watched={watched} />
-          <WatchedSummary watched={watched} />
-        </>
-      )}
-    </div>
-  );
-}
-
+//PRESENTATIONAL
 function WatchedSummary({ watched }) {
   //DERIVED STATES BASED ON THE wathced prop
   const avgImdbRating = average(watched.map((movie) => movie.imdbRating));
@@ -218,7 +265,7 @@ function WatchedSummary({ watched }) {
     </div>
   );
 }
-
+//PRESENTATIONAL
 function WatchedMoviesList({ watched }) {
   return (
     <ul className="list">
@@ -251,3 +298,101 @@ function WatchedMovie({ movie }) {
     </li>
   );
 }
+
+/** ----SUMMARY----
+ * ************************
+ * USING COMPONENT  VS COMONENT COMPOSITION
+ * ************************
+ *
+ * -------------------
+ * USING COMPONENT:
+ * --------------------
+ * function Modal()
+ * {
+ *  return <div>
+ *    <Success/>
+ *  </div>
+ * }
+ *
+ * ---------------
+ * COMPONENT  COMPOSITION
+ * ----------------
+ *  Used When I want to :
+ *        1)  Create Reusable component
+ *        2) Create Layouts(by product)
+ *        3) Fix prop drilling problem
+ *  (Modal and Success are Tightly couple)
+ * -------------
+ * //INJECT
+ * <Modal>
+ *  <Success/>
+ * </Modal>
+ *
+ * function Modal({children})
+ * {
+ *    return <div>{children}</div>
+ * }
+ *
+ *
+ * >>>>>>>>>>
+ *  PROJECT : COMPOSITION IMPLEMENTATION: 
+ * >>>>>>>>>>>>>>
+ *    
+ *   1. Compose the NavBar with the Logo, Search , and NumResults : 
+ *      Solve the movies prop drilling of the movies:
+ *     App => NavBar => NumResults
+ *
+ *  INJECT THE 3 CHILDREN OF THE NavBar to the NavBar Use the NumResults in the App by Injecting it  the NumResults
+ *   USE THE movies prop where it is defined - in the App!@
+ * 
+ * 
+ * return(
+ * .....
+ *  <NavBar movies={movies}>
+        <Logo />
+        <Search />
+        <NumResults movies={movies} />
+      </NavBar>
+ * )
+ *
+ * 
+ * 2. SOLVE THE movies PROP DRILLING :
+ *     App => Main => ListBox => MoviesList 
+ * 
+ *  <App>
+ *    <Main>
+ *      <ListBox>
+ *        <MoviesList movies={movies} />ß
+ *      
+ *      </ListBox>
+ *    
+ *    </Main>
+ * 
+ *   1.Main : Replace the movies prop by children prop : function Main({children})
+ *           Inject the <ListBox> and <WatchedBox > into the Main - in the App
+ * 
+ * 
+ * *******************************
+ *    Passing Elements as Props(React Router) - as an alternative to Passing Components as children
+ * *****************************
+ * 
+ *  
+ *     <App>
+ *      <Main>
+  *          <Box element={<MovieList movies={movies}/>} /
+  *          <Box element={ 
+  *               <>
+  *                 <WatchedSummary watched={watched} />
+  *                 <WatchedMoviesList watched={watched}
+  *               </>
+  *           }
+  *     </Main>
+  *   </App>
+  * 
+  * *******************************************
+  *         BUILDING A REUSABLE STAR COMPONENT 
+  * *******************************************
+  *    Requirement: 
+  * 
+  *   
+ */
